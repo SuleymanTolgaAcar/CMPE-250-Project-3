@@ -45,14 +45,15 @@ public class PQueue {
     public Song pop() {
         Song maxSong = peek();
         array.set(1, array.get(size));
+        array.remove(size);
         size--;
-        bubbleDown(1);
+        if(size > 1) percolateDown(1);
         return maxSong;
     }
 
     private void buildHeap() {
         for (int i = size / 2; i > 0; i--) {
-            bubbleDown(i);
+            percolateDown(i);
         }
     }
 
@@ -60,44 +61,48 @@ public class PQueue {
         return size;
     }
 
-    private void bubbleDown(int hole) {
-        Song tmp = array.get(hole);
-        int child;
-
-        for (; hole * 2 <= size; hole = child) {
-            child = hole * 2;
-            if (child != size && (maxHeap ? array.get(child + 1).scores[category] > array.get(child).scores[category]
+    private void percolateDown(int hole) {
+		int child;
+		Song temp = array.get(hole);
+		
+		while(hole * 2 <= size) {
+			child = hole * 2;
+			if(child != size && (maxHeap ? array.get(child + 1).scores[category] > array.get(child).scores[category]
                     : array.get(child + 1).scores[category] < array.get(child).scores[category])) {
-                child++;
-            }
-            if (maxHeap ? array.get(child).scores[category] > tmp.scores[category]
-                    : array.get(child).scores[category] < tmp.scores[category]) {
-                array.set(hole, array.get(child));
-            } else {
-                break;
-            }
-        }
-        array.set(hole, tmp);
-    }
+				child++;
+			}
+			if(maxHeap ? array.get(child).scores[category] > temp.scores[category]
+                    : array.get(child).scores[category] < temp.scores[category]) {
+				array.set(hole, array.get(child));
+			}else {
+				break;
+			}
+			
+			hole = child;
+		}
+		array.set(hole, temp);
+	}
 
     public boolean remove(int id) {
-        int hole = 0;
         for (int i = 1; i <= size; i++) {
             if (array.get(i).id == id) {
-                hole = i;
-                break;
+                array.set(i, array.get(size));
+                size--;
+                percolateDown(i);
+                return true;
             }
         }
-        if (hole == 0) {
-            return false;
-        }
-        array.set(hole, array.get(size));
-        size--;
-        bubbleDown(hole);
-        return true;
+        return false;
     }
 
     public ArrayList<Song> getArray() {
         return array;
+    }
+
+    public void print() {
+        for (int i = 1; i <= size; i++) {
+            System.out.print(array.get(i).id + " ");
+        }
+        System.out.println();
     }
 }

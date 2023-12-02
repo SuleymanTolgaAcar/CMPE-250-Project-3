@@ -1,5 +1,4 @@
 import java.io.FileWriter;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class EpicBlend {
@@ -37,6 +36,9 @@ public class EpicBlend {
                     maxPlaylist.minQueues[i].insert(song);
                     counts[i]++;
                 }
+                else{
+                    break;
+                }
             }
         }
     }
@@ -64,7 +66,7 @@ public class EpicBlend {
                 }
             }
             else if(playlist.counts[i] < categoryLimit && counts[i] == limits[i]){
-                int minScore = 100;
+                int minScore = 101;
                 Playlist minPlaylist = null;
                 for(Playlist p : playlists.values()){
                     if(p.minQueues[i].size() > 0 && p.minQueues[i].peek().scores[i] < minScore){
@@ -72,18 +74,26 @@ public class EpicBlend {
                         minPlaylist = p;
                     }
                 }
-                if(minPlaylist != null){
+                if(minPlaylist != null && minScore < song.scores[i]){
                     Song minSong = minPlaylist.minQueues[i].pop();
-                    minPlaylist.counts[i]--;
-                    playlist.counts[i]++;
-                    playlist.minQueues[i].insert(song);
                     minPlaylist.maxQueues[i].insert(minSong);
+                    minPlaylist.counts[i]--;
+                    playlist.minQueues[i].insert(song);
+                    playlist.counts[i]++;
                     additions[i] = song.id;
                     removals[i] = minSong.id;
                 }
             }
         }
+        for(int i = 0; i < 3; i++){
+            if(additions[i] == 0){
+                playlist.maxQueues[i].insert(song);
+            }
+        }
         writer.write(additions[0] + " " + additions[1] + " " + additions[2] + "\n" + removals[0] + " " + removals[1] + " " + removals[2] + "\n");
+        // playlist.minQueues[0].print();
+        // playlist.minQueues[1].print();
+        // playlist.minQueues[2].print();
     }
 
     public void remove(int songID, int playlistID, FileWriter writer) throws Exception{
@@ -130,7 +140,7 @@ public class EpicBlend {
                 if(playlist.minQueues[i].size() > 0){
                     for(Song song : playlist.minQueues[i].getArray()){
                         if(song != null){
-                            writer.write(song.id + " ");
+                            writer.write(i + "-" + song.id + "-" + playlist.id + " ");
                         }
                     }
                 }
