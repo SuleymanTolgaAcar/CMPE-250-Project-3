@@ -5,9 +5,10 @@ import java.util.Scanner;
 
 public class App {
     public static void main(String[] args) throws Exception {
-        Scanner songsScanner = new Scanner(new File("sample-test-cases/songs.txt"));
-        Scanner inputScanner = new Scanner(new File("sample-test-cases/inputs/sample_1.txt"));
-        FileWriter writer = new FileWriter("sample-test-cases/outputs/output.txt");
+        double startTime = System.currentTimeMillis();
+        Scanner songsScanner = new Scanner(new File("test-cases/songs.txt"));
+        Scanner inputScanner = new Scanner(new File("test-cases/inputs/one_playlist_large.txt"));
+        FileWriter writer = new FileWriter("test-cases/outputs/output.txt");
         
         HashMap<Integer, Song> songs = new HashMap<Integer, Song>();
         HashMap<Integer, Playlist> playlists = new HashMap<Integer, Playlist>();
@@ -21,24 +22,29 @@ public class App {
             songs.put(Integer.parseInt(songInfo[0]), song);
         }
         
-
         String[] limitInfo = inputScanner.nextLine().split(" ");
         EpicBlend epicBlend = new EpicBlend(Integer.parseInt(limitInfo[0]), new int[] { Integer.parseInt(limitInfo[1]),
                 Integer.parseInt(limitInfo[2]), Integer.parseInt(limitInfo[3]) }, songs, playlists);
 
 
         int numOfPlaylists = Integer.parseInt(inputScanner.nextLine());
-        for (int i = 0; i < numOfPlaylists * 2; i += 2) {
+        for (int i = 0; i < numOfPlaylists; i++) {
             String[] playlistInfo = inputScanner.nextLine().split(" ");
             String[] playlistSongs = inputScanner.nextLine().split(" ");
-            Song[] songsInPlaylist = new Song[playlistSongs.length];
-            for (int j = 0; j < playlistSongs.length; j++) {
-                songsInPlaylist[j] = songs.get(Integer.parseInt(playlistSongs[j]));
+            int playlistID = Integer.parseInt(playlistInfo[0]);
+            int numOfSongsInPlaylist = Integer.parseInt(playlistInfo[1]);
+            Song[] songsInPlaylist = new Song[numOfSongsInPlaylist];
+            for (int j = 0; j < numOfSongsInPlaylist; j++) {
+                Song currentSong = songs.get(Integer.parseInt(playlistSongs[j]));
+                songsInPlaylist[j] = currentSong;
+                currentSong.playlistID = playlistID;
             }
-            playlists.put(Integer.parseInt(playlistInfo[0]), new Playlist(Integer.parseInt(playlistInfo[0]), songsInPlaylist));
+            playlists.put(playlistID, new Playlist(playlistID, songsInPlaylist));
         }
 
+        double buildStartTime = System.currentTimeMillis();
         epicBlend.build();
+        System.out.println("Build Time: " + (System.currentTimeMillis() - buildStartTime) / 1000 + " seconds");
 
         int numOfOperations = Integer.parseInt(inputScanner.nextLine());
         for(int i = 0; i < numOfOperations; i++){
@@ -68,5 +74,6 @@ public class App {
         writer.close();
         songsScanner.close();
         inputScanner.close();
+        System.out.println("Total Time: " + (System.currentTimeMillis() - startTime) / 1000 + " seconds");
     }
 }
