@@ -7,7 +7,7 @@ public class App {
     public static void main(String[] args) throws Exception {
         double startTime = System.currentTimeMillis();
         Scanner songsScanner = new Scanner(new File("test-cases/songs.txt"));
-        Scanner inputScanner = new Scanner(new File("test-cases/inputs/one_playlist_large.txt"));
+        Scanner inputScanner = new Scanner(new File("test-cases/inputs/general_small.txt"));
         FileWriter writer = new FileWriter("test-cases/outputs/output.txt");
         
         HashMap<Integer, Song> songs = new HashMap<Integer, Song>();
@@ -23,9 +23,6 @@ public class App {
         }
         
         String[] limitInfo = inputScanner.nextLine().split(" ");
-        EpicBlend epicBlend = new EpicBlend(Integer.parseInt(limitInfo[0]), new int[] { Integer.parseInt(limitInfo[1]),
-                Integer.parseInt(limitInfo[2]), Integer.parseInt(limitInfo[3]) }, songs, playlists);
-
 
         int numOfPlaylists = Integer.parseInt(inputScanner.nextLine());
         for (int i = 0; i < numOfPlaylists; i++) {
@@ -43,6 +40,8 @@ public class App {
         }
 
         double buildStartTime = System.currentTimeMillis();
+        EpicBlend epicBlend = new EpicBlend(Integer.parseInt(limitInfo[0]), new int[] { Integer.parseInt(limitInfo[1]),
+        Integer.parseInt(limitInfo[2]), Integer.parseInt(limitInfo[3]) }, songs, playlists);
         epicBlend.build();
         System.out.println("Build Time: " + (System.currentTimeMillis() - buildStartTime) / 1000 + " seconds");
 

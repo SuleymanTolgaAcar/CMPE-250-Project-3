@@ -1,10 +1,10 @@
 import java.util.ArrayList;
-import java.util.HashSet;
-
+import java.util.Collection;
+import java.util.HashMap;
 public class PQueue {
     private int size;
     private ArrayList<Song> array;
-    private HashSet<Integer> removed = new HashSet<>();
+    private HashMap<Integer, Integer> map = new HashMap<>();
     public int category;
     private boolean maxHeap;
 
@@ -21,6 +21,7 @@ public class PQueue {
         for (Song song : songs) {
             array.add(song);
             size++;
+            map.put(song.id, size);
         }
         this.category = category;
         this.maxHeap = maxHeap;
@@ -30,12 +31,14 @@ public class PQueue {
     public void insert(Song song) {
         size++;
         array.add(song);
-        removed.remove(song.id);
+        map.put(song.id, size);
         int hole = size;
         while (hole > 1 && (maxHeap ? song.compare(array.get(hole / 2), category) > 0 : song.compare(array.get(hole / 2), category) < 0)) {
             Song parent = array.get(hole / 2);
             array.set(hole / 2, song);
             array.set(hole, parent);
+            map.put(parent.id, hole);
+            map.put(song.id, hole / 2);
             hole = hole / 2;
         }
     }
@@ -45,11 +48,6 @@ public class PQueue {
             return null;
         }
         Song maxSong = array.get(1);
-        while (removed.contains(maxSong.id)) {
-            pop();
-            if(size == 0) return null;
-            maxSong = array.get(1);
-        }
         return maxSong;
     }
 
@@ -57,16 +55,14 @@ public class PQueue {
         if (size == 0) {
             return null;
         }
+
         Song maxSong = array.get(1);
-        do{
-            removed.remove(maxSong.id);
-            array.set(1, array.get(size));
-            array.remove(size);
-            size--;
-            if(size > 1) percolateDown(1);
-            if(size == 0) return null;
-            maxSong = array.get(1);
-        }while(removed.contains(maxSong.id));
+        array.set(1, array.get(size));
+        array.remove(size);
+        size--;
+        if(size > 0) map.put(array.get(1).id, 1);
+        map.remove(maxSong.id);
+        if(size > 1) percolateDown(1);
 
         return maxSong;
     }
@@ -78,7 +74,7 @@ public class PQueue {
     }
 
     public int size() {
-        return size - removed.size();
+        return size;
     }
 
     private void percolateDown(int hole) {
@@ -92,6 +88,7 @@ public class PQueue {
 			}
 			if(maxHeap ? array.get(child).compare(temp, category) > 0 : array.get(child).compare(temp, category) < 0) {
 				array.set(hole, array.get(child));
+                map.put(array.get(child).id, hole);
 			}else {
 				break;
 			}
@@ -99,10 +96,25 @@ public class PQueue {
 			hole = child;
 		}
 		array.set(hole, temp);
+        map.put(temp.id, hole);
 	}
 
     public void remove(int id) {
-        removed.add(id);
+        if(!map.containsKey(id)) return;
+        int index = map.get(id);
+        if(index == size) {
+            array.remove(size);
+            size--;
+            map.remove(id);
+            return;
+        }
+        Song song = array.get(index);
+        array.set(index, array.get(size));
+        map.put(array.get(size).id, index);
+        array.remove(size);
+        size--;
+        map.remove(id);
+        if(size > 1) percolateDown(index);
     }
 
     public ArrayList<Song> getArray() {
