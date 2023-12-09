@@ -138,6 +138,9 @@ public class EpicBlend {
         int[] removals = new int[3];
         for(int i = 0; i < 3; i++){
             if(inEpicBlend[i].contains(song.id)){
+                if(song.id == 32 && i == 1){
+                    maxQueues[i].print();
+                }
                 playlist.counts[i]--;
                 counts[i]--;
                 if(maxQueues[i].size() > 0){
@@ -150,15 +153,18 @@ public class EpicBlend {
                         for(int j = (int) Math.pow(2, level - 1); (j < Math.pow(2, level) && j <= maxQueues[i].size()); j++){
                             Song currentSong = maxArray.get(j);
                             Playlist currentPlaylist = playlists.get(currentSong.playlistID);
-                            if(currentSong != null && currentPlaylist.counts[i] < categoryLimit && (tempMaxSong == null || currentSong.compare(tempMaxSong, i) > 0)){
+                            if(currentPlaylist.counts[i] < categoryLimit && (tempMaxSong == null || currentSong.compare(tempMaxSong, i) > 0)){
                                 tempMaxSong = currentSong;
                             }
                         }
-                        if(tempMaxSong == null) break;
-                        maxSong = tempMaxSong;
-                        maxPlaylist = playlists.get(maxSong.playlistID);
-                        if(Math.pow(2, level) > maxQueues[i].size()) break;
-                        level++;
+                        if(tempMaxSong == null){
+                            if(Math.pow(2, level) > maxQueues[i].size()) break;
+                            level++;
+                        }
+                        else{
+                            maxSong = tempMaxSong;
+                            maxPlaylist = playlists.get(maxSong.playlistID);
+                        }
                     }
                     if(maxSong != null && maxPlaylist.counts[i] < categoryLimit){
                         maxPlaylist.maxQueues[i].pop();

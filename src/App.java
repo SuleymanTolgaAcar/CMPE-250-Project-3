@@ -7,7 +7,7 @@ public class App {
     public static void main(String[] args) throws Exception {
         double startTime = System.currentTimeMillis();
         Scanner songsScanner = new Scanner(new File("test-cases/songs.txt"));
-        Scanner inputScanner = new Scanner(new File("test-cases/inputs/tiny_playlists_small.txt"));
+        Scanner inputScanner = new Scanner(new File("test-cases/inputs/tiny_playlists_large.txt"));
         FileWriter writer = new FileWriter("test-cases/outputs/output.txt");
         
         HashMap<Integer, Song> songs = new HashMap<Integer, Song>();
