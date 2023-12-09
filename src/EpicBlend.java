@@ -49,7 +49,6 @@ public class EpicBlend {
                     inEpicBlend[i].add(maxSong.id);
                 }
             }
-            // minQueues[i].print();
         }
     }
 
@@ -60,9 +59,6 @@ public class EpicBlend {
         int[] additions = new int[3];
         int[] removals = new int[3];
         for(int i = 0; i < 3; i++){
-            if(song.id == 77 && i == 0){
-                System.out.println(i + " " + playlist.counts[i] + " " + counts[i] + " " + limits[i] + " " + categoryLimit);
-            }
             if(playlist.counts[i] < categoryLimit && counts[i] < limits[i]){
                 playlist.counts[i]++;
                 playlist.minQueues[i].insert(song);
@@ -95,10 +91,6 @@ public class EpicBlend {
             }
             else if(playlist.counts[i] < categoryLimit && counts[i] == limits[i]){
                 Song minSong = minQueues[i].peek();
-                if(song.id == 77 && i == 0){
-                    minQueues[i].print();
-                    System.out.println(minSong.id);
-                }
                 if(minSong != null && song.compare(minSong, i) > 0){
                     Playlist minPlaylist = playlists.get(minSong.playlistID);
                     minPlaylist.minQueues[i].pop();
@@ -155,7 +147,7 @@ public class EpicBlend {
                     int level = 2;
                     while(maxPlaylist.counts[i] == categoryLimit && maxQueues[i].size() > 1){
                         Song tempMaxSong = null;
-                        for(int j = (int) Math.pow(2, level - 1); (j < Math.pow(2, level) && j < maxQueues[i].size()); j++){
+                        for(int j = (int) Math.pow(2, level - 1); (j < Math.pow(2, level) && j <= maxQueues[i].size()); j++){
                             Song currentSong = maxArray.get(j);
                             Playlist currentPlaylist = playlists.get(currentSong.playlistID);
                             if(currentSong != null && currentPlaylist.counts[i] < categoryLimit && (tempMaxSong == null || currentSong.compare(tempMaxSong, i) > 0)){
@@ -171,7 +163,6 @@ public class EpicBlend {
                     if(maxSong != null && maxPlaylist.counts[i] < categoryLimit){
                         maxPlaylist.maxQueues[i].pop();
                         maxPlaylist.minQueues[i].insert(maxSong);
-                        minQueues[i].remove(song.id);
                         minQueues[i].insert(maxSong);
                         maxQueues[i].remove(maxSong.id);
                         if(maxPlaylist.maxQueues[i].size() > 0) maxQueues[i].insert(maxPlaylist.maxQueues[i].peek());
@@ -181,14 +172,16 @@ public class EpicBlend {
                         inEpicBlend[i].add(maxSong.id);
                     }
                 }
+                minQueues[i].remove(song.id);
                 removals[i] = song.id;
+                playlist.minQueues[i].remove(song.id);
                 inEpicBlend[i].remove(song.id);
             }
             else{
                 Song oldMax = playlist.maxQueues[i].peek();
                 playlist.maxQueues[i].remove(song.id);
                 if(playlist.maxQueues[i].size() > 0 && oldMax.id != playlist.maxQueues[i].peek().id){
-                    maxQueues[i].insert(playlist.maxQueues[i].peek());
+                    maxQueues[i].insert(playlist.maxQueues[i].peek()); //l
                 }
                 maxQueues[i].remove(song.id);
             }
@@ -197,11 +190,60 @@ public class EpicBlend {
         writer.write(additions[0] + " " + additions[1] + " " + additions[2] + "\n" + removals[0] + " " + removals[1] + " " + removals[2] + "\n");
     }
 
-    public void ask(FileWriter writer) throws Exception{
-        for(int i = 0; i < 3; i++){
-            
+    public static int partition(Song A[], int l, int h) {
+        Song pivot = A[l];
+        int i = l, j = h;
+        do {
+            do {i++;} while (A[i].playCount > pivot.playCount || 
+                (A[i].playCount == pivot.playCount && A[i].name.compareTo(pivot.name) <= 0));
+        
+            do {j--;} while (A[j].playCount < pivot.playCount || 
+                (A[j].playCount == pivot.playCount && A[j].name.compareTo(pivot.name) > 0));
+
+            if (i < j) {
+                Song temp = A[i];
+                A[i] = A[j];
+                A[j] = temp;
+            }
+
+        } while (i < j);
+
+        Song temp = A[l];
+        A[l] = A[j];
+        A[j] = temp;
+        return j;
+    }
+
+    public static void quickSort(Song A[], int l, int h) {
+        int j;
+        if (l < h) {
+            j = partition(A, l, h);
+            quickSort(A, l, j);
+            quickSort(A, j+1, h);
         }
-        writer.write("\n");
+    }
+
+    public void ask(FileWriter writer) throws Exception{
+        Song[] epicBlendSongs = new Song[minQueues[0].size() + minQueues[1].size() + minQueues[2].size() + 1];
+        int index = 0;
+        for(int i = 0; i < 3; i++){
+            for(Song song : minQueues[i].getArray()){
+                if(song != null){
+                    epicBlendSongs[index] = song;
+                    index++;
+                }
+            }
+        }
+        epicBlendSongs[index] = new Song(0, "inf", Integer.MIN_VALUE, new int[3]);
+        quickSort(epicBlendSongs, 0, epicBlendSongs.length - 1);
+        for(int i = 0; i < epicBlendSongs.length - 1; i++){
+            if(epicBlendSongs[i].id == epicBlendSongs[i + 1].id) continue;
+            if(i == epicBlendSongs.length - 2){
+                writer.write(epicBlendSongs[i].id + "\n");
+                break;
+            }
+            writer.write(epicBlendSongs[i].id + " ");
+        }
     }
 
     public void print(FileWriter writer) throws Exception{

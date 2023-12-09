@@ -7,7 +7,7 @@ public class App {
     public static void main(String[] args) throws Exception {
         double startTime = System.currentTimeMillis();
         Scanner songsScanner = new Scanner(new File("test-cases/songs.txt"));
-        Scanner inputScanner = new Scanner(new File("test-cases/inputs/general_small.txt"));
+        Scanner inputScanner = new Scanner(new File("test-cases/inputs/tiny_playlists_small.txt"));
         FileWriter writer = new FileWriter("test-cases/outputs/output.txt");
         
         HashMap<Integer, Song> songs = new HashMap<Integer, Song>();
@@ -65,7 +65,7 @@ public class App {
                     break;
 
                 case "ASK":
-                    epicBlend.print(writer);
+                    epicBlend.ask(writer);
                     break;
             }
         }
