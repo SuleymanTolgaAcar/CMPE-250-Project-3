@@ -1,3 +1,11 @@
+/**
+ * Süleyman Tolga Acar
+ * 2021400237
+ * 12.12.2023
+ * Cmpe 250 - Project 3
+ * This is the main class of the program. It reads the input files, creates the songs and playlists, and calls the methods of EpicBlend.
+ */
+
 import java.io.File;
 import java.io.FileWriter;
 import java.util.HashMap;
@@ -7,7 +15,7 @@ public class App {
     public static void main(String[] args) throws Exception {
         double startTime = System.currentTimeMillis();
         Scanner songsScanner = new Scanner(new File("test-cases/songs.txt"));
-        Scanner inputScanner = new Scanner(new File("test-cases/inputs/tiny_playlists_large.txt"));
+        Scanner inputScanner = new Scanner(new File("test-cases/inputs/ten_playlists_large.txt"));
         FileWriter writer = new FileWriter("test-cases/outputs/output.txt");
         
         HashMap<Integer, Song> songs = new HashMap<Integer, Song>();

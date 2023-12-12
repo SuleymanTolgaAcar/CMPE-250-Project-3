@@ -1,5 +1,4 @@
 import java.io.FileWriter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -11,7 +10,6 @@ public class EpicBlend {
     private HashMap<Integer, Playlist> playlists;
     private PQueue[] minQueues = new PQueue[3];
     private PQueue[] maxQueues = new PQueue[3];
-    private PQueue[] maxBuildQueues = new PQueue[3];
     private HashSet<Integer>[] inEpicBlend = new HashSet[3];
 
     public EpicBlend(int categoryLimit, int[] limits, HashMap<Integer, Song> songs, HashMap<Integer, Playlist> playlists) {
@@ -22,11 +20,9 @@ public class EpicBlend {
         for(int i = 0; i < 3; i++){
             minQueues[i] = new PQueue(i, false);
             maxQueues[i] = new PQueue(i, true);
-            maxBuildQueues[i] = new PQueue(i, true);
             for (Playlist playlist : playlists.values()) {
                 if(playlist.maxQueues[i].peek() == null) continue;
                 maxQueues[i].insert(playlist.maxQueues[i].peek());
-                maxBuildQueues[i].insert(playlist.maxQueues[i].peek());
             }
             inEpicBlend[i] = new HashSet<>();
         }
@@ -34,16 +30,14 @@ public class EpicBlend {
 
     public void build(){
         for(int i = 0; i < 3; i++){
-            while(counts[i] < limits[i] && maxBuildQueues[i].size() > 0){
-                Song maxSong = maxBuildQueues[i].pop();
+            while(counts[i] < limits[i] && maxQueues[i].size() > 0){
+                Song maxSong = maxQueues[i].pop();
                 Playlist maxPlaylist = playlists.get(maxSong.playlistID);
                 if(maxPlaylist.counts[i] < categoryLimit){
                     maxPlaylist.maxQueues[i].pop();
                     maxPlaylist.minQueues[i].insert(maxSong);
                     minQueues[i].insert(maxSong);
-                    maxQueues[i].remove(maxSong.id);
                     if(maxPlaylist.maxQueues[i].size() > 0) maxQueues[i].insert(maxPlaylist.maxQueues[i].peek());
-                    if(maxPlaylist.maxQueues[i].size() > 0) maxBuildQueues[i].insert(maxPlaylist.maxQueues[i].peek());
                     maxPlaylist.counts[i]++;
                     counts[i]++;
                     inEpicBlend[i].add(maxSong.id);
@@ -112,6 +106,7 @@ public class EpicBlend {
                     removals[i] = minSong.id;
                     inEpicBlend[i].add(song.id);
                     inEpicBlend[i].remove(minSong.id);
+                    if(minPlaylist.counts[i] == categoryLimit - 1 && minPlaylist.maxQueues[i].size() > 0) maxQueues[i].insert(minPlaylist.maxQueues[i].peek());
                 }
             }
         }
@@ -138,46 +133,29 @@ public class EpicBlend {
         int[] removals = new int[3];
         for(int i = 0; i < 3; i++){
             if(inEpicBlend[i].contains(song.id)){
-                if(song.id == 32 && i == 1){
-                    maxQueues[i].print();
-                }
                 playlist.counts[i]--;
                 counts[i]--;
-                if(maxQueues[i].size() > 0){
-                    Song maxSong = maxQueues[i].peek();
-                    Playlist maxPlaylist = playlists.get(maxSong.playlistID);
-                    ArrayList<Song> maxArray = maxQueues[i].getArray();
-                    int level = 2;
-                    while(maxPlaylist.counts[i] == categoryLimit && maxQueues[i].size() > 1){
-                        Song tempMaxSong = null;
-                        for(int j = (int) Math.pow(2, level - 1); (j < Math.pow(2, level) && j <= maxQueues[i].size()); j++){
-                            Song currentSong = maxArray.get(j);
-                            Playlist currentPlaylist = playlists.get(currentSong.playlistID);
-                            if(currentPlaylist.counts[i] < categoryLimit && (tempMaxSong == null || currentSong.compare(tempMaxSong, i) > 0)){
-                                tempMaxSong = currentSong;
-                            }
-                        }
-                        if(tempMaxSong == null){
-                            if(Math.pow(2, level) > maxQueues[i].size()) break;
-                            level++;
-                        }
-                        else{
-                            maxSong = tempMaxSong;
-                            maxPlaylist = playlists.get(maxSong.playlistID);
-                        }
-                    }
-                    if(maxSong != null && maxPlaylist.counts[i] < categoryLimit){
-                        maxPlaylist.maxQueues[i].pop();
-                        maxPlaylist.minQueues[i].insert(maxSong);
-                        minQueues[i].insert(maxSong);
-                        maxQueues[i].remove(maxSong.id);
-                        if(maxPlaylist.maxQueues[i].size() > 0) maxQueues[i].insert(maxPlaylist.maxQueues[i].peek());
-                        maxPlaylist.counts[i]++;
-                        counts[i]++;
-                        additions[i] = maxSong.id;
-                        inEpicBlend[i].add(maxSong.id);
-                    }
+                if(playlist.counts[i] == categoryLimit - 1 && playlist.maxQueues[i].size() > 0) maxQueues[i].insert(playlist.maxQueues[i].peek());
+                
+                Song maxSong = null;
+                Playlist maxPlaylist = null;
+                while(maxQueues[i].size() > 0){
+                    maxSong = maxQueues[i].pop();
+                    maxPlaylist = playlists.get(maxSong.playlistID);
+                    if(maxPlaylist.counts[i] < categoryLimit) break;
                 }
+
+                if(maxSong != null && maxPlaylist.counts[i] < categoryLimit){
+                    maxPlaylist.maxQueues[i].pop();
+                    maxPlaylist.minQueues[i].insert(maxSong);
+                    minQueues[i].insert(maxSong);
+                    maxPlaylist.counts[i]++;
+                    counts[i]++;
+                    additions[i] = maxSong.id;
+                    inEpicBlend[i].add(maxSong.id);
+                    if(maxPlaylist.maxQueues[i].size() > 0 && maxPlaylist.counts[i] < categoryLimit) maxQueues[i].insert(maxPlaylist.maxQueues[i].peek());
+                }
+
                 minQueues[i].remove(song.id);
                 removals[i] = song.id;
                 playlist.minQueues[i].remove(song.id);
@@ -187,7 +165,7 @@ public class EpicBlend {
                 Song oldMax = playlist.maxQueues[i].peek();
                 playlist.maxQueues[i].remove(song.id);
                 if(playlist.maxQueues[i].size() > 0 && oldMax.id != playlist.maxQueues[i].peek().id){
-                    maxQueues[i].insert(playlist.maxQueues[i].peek()); //l
+                    maxQueues[i].insert(playlist.maxQueues[i].peek());
                 }
                 maxQueues[i].remove(song.id);
             }
@@ -250,20 +228,5 @@ public class EpicBlend {
             }
             writer.write(epicBlendSongs[i].id + " ");
         }
-    }
-
-    public void print(FileWriter writer) throws Exception{
-        for(Playlist playlist : playlists.values()){
-            for(int i = 0; i < 3; i++){
-                if(playlist.minQueues[i].size() > 0){
-                    for(Song song : playlist.minQueues[i].getArray()){
-                        if(song != null){
-                            writer.write(i + "-" + song.id + "-" + playlist.id + " ");
-                        }
-                    }
-                }
-            }
-        }
-        writer.write("\n");
     }
 }
